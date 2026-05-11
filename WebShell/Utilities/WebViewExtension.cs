@@ -14,7 +14,8 @@ namespace WebShell.Utilities
 		{
 			public async Task<string> GetDocumentTitle()
 			{
-				throw new NotImplementedException();
+				string result = await webView.InvokeScript("document.title");
+				return result[1..^1];
 			}
 
 			public async Task<Uri?> GetFaviconUri()
