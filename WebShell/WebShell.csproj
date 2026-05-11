@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="MissingPortPage.html" />
+    <EmbeddedResource Include="Resources\MissingPortPage.html" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="DefaultIcon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
