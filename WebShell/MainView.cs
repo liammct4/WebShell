@@ -1,8 +1,10 @@
+using WebShell.Config;
+
 namespace WebShell
 {
 	public partial class MainView : Form
 	{
-		public MainView()
+		public MainView(LoadWebAppConfig config)
 		{
 			InitializeComponent();
 		}
