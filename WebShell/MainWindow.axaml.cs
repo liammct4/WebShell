@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using WebShell.Config;
 using WebShell.Utilities;
 using WinBitmap = System.Drawing.Bitmap;
@@ -37,6 +38,15 @@ namespace WebShell
 			InitializeComponent();
 
 			Closing += MainWindow_Closing;
+
+			if (!Settings.Default.FirstBoot)
+			{
+				Position = Settings.Default.Location.AvaloniaPoint;
+				Width = Settings.Default.Size.Width;
+				Height = Settings.Default.Size.Height;
+
+				WindowState = Enum.Parse<WindowState>(Settings.Default.WindowState);
+			}
 
 			if (File.Exists("webapp.ico"))
 			{
@@ -203,6 +213,25 @@ namespace WebShell
 
 		private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
 		{
+			WindowState state = WindowState;
+
+			Settings.Default.FirstBoot = false;
+
+			if (state != WindowState.Maximized)
+			{
+				Settings.Default.Location = Position.WinPoint;
+				Settings.Default.Size = new((int)Width, (int)Height);
+			}
+
+			if (state == WindowState.Minimized)
+			{
+				state = WindowState.Normal;
+			}
+
+			Settings.Default.WindowState = state.ToString();
+
+			Settings.Default.Save();
+
 			server.Kill();
 
 			Process changeIconProcess = new()
