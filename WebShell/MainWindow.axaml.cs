@@ -1,13 +1,17 @@
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Styling;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using WebShell.Config;
 using WebShell.Utilities;
-using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 namespace WebShell
 {
@@ -22,9 +26,15 @@ namespace WebShell
 			TypeInfoResolver = ConfigJsonContext.Default
 		};
 
+		private readonly HttpClient httpClient = new();
+		private readonly Process server;
+		private readonly LoadWebAppConfig config;
+
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			Closing += MainWindow_Closing;
 
 			LoadWebAppConfig? webApp = null;
 
@@ -73,7 +83,6 @@ namespace WebShell
 				return;
 			}
 
-			return;
 			// Start server.
 			if (!File.Exists(webApp.Server.Path))
 			{
@@ -84,7 +93,7 @@ namespace WebShell
 				return;
 			}
 
-			Process server = new()
+			server = new()
 			{
 				StartInfo =
 				{
@@ -123,6 +132,62 @@ namespace WebShell
 
 			}
 
+			config = webApp;
+
+			LoadPage();
+		}
+
+		private async void LoadPage()
+		{
+			Title = string.IsNullOrWhiteSpace(config.CustomTitle) ?
+				"WebShell" :
+				config.CustomTitle;
+
+			webView.NavigationCompleted += WebView_NavigationCompleted;
+
+			if (!Network.IsPortInUse(config.Server.Port))
+			{
+				LoadMissingPage(config.Server.Port);
+
+				while (!Network.IsPortInUse(config.Server.Port))
+				{
+					await Task.Delay(250);
+				}
+			}
+
+			webView.Source = new Uri($"localhost:{config.Server.Port}");
+		}
+
+		private async void LoadMissingPage(ushort port)
+		{
+			Assembly current = Assembly.GetExecutingAssembly();
+
+			using Stream page = current.GetManifestResourceStream("WebShell.Resources.MissingPortPage.html");
+			using StreamReader reader = new(page);
+
+			string pageText = reader.ReadToEnd();
+			string formatted = pageText.Replace("{PORT_NUMBER}", port.ToString());
+
+			webView.NavigateToString(formatted);
+		}
+
+		private async void WebView_NavigationCompleted(object? sender, WebViewNavigationCompletedEventArgs e)
+		{
+			if (config.UseDocumentTitle)
+			{
+				Title = await webView.GetDocumentTitle();
+			}
+
+			Uri iconUrl = await webView.GetFaviconUri();
+
+			using var client = new HttpClient();
+			using Stream stream = await client.GetStreamAsync(iconUrl);
+
+			Icon = new WindowIcon(stream);
+		}
+
+		private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+		{
 			server.Kill();
 		}
 	}
