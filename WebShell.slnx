@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="IconChanger/IconChanger.csproj" Id="d670f613-6ee5-44f9-9bdd-1feab6c12659" />
   <Project Path="WebShell/WebShell.csproj" Id="709e4463-6014-49f9-a7d5-c996a26d2c30" />
   <Project Path="WebShellOld/WebShellOld.csproj" />
 </Solution>

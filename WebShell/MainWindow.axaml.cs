@@ -12,6 +12,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WebShell.Config;
 using WebShell.Utilities;
+using WinBitmap = System.Drawing.Bitmap;
+using WinIcon = System.Drawing.Icon;
 
 namespace WebShell
 {
@@ -35,6 +37,11 @@ namespace WebShell
 			InitializeComponent();
 
 			Closing += MainWindow_Closing;
+
+			if (File.Exists("webapp.ico"))
+			{
+				Icon = new WindowIcon("webapp.ico");
+			}
 
 			LoadWebAppConfig? webApp = null;
 
@@ -99,13 +106,11 @@ namespace WebShell
 				{
 					FileName = webApp.Server.Path,
 					Arguments = webApp.Server.Arguments,
+#if !DEBUG
 					CreateNoWindow = true
+#endif
 				}
 			};
-
-#if DEBUG
-			server.StartInfo.CreateNoWindow = false;
-#endif
 
 			if (!server.Start())
 			{
@@ -180,15 +185,38 @@ namespace WebShell
 
 			Uri iconUrl = await webView.GetFaviconUri();
 
-			using var client = new HttpClient();
-			using Stream stream = await client.GetStreamAsync(iconUrl);
+			using Stream downloadStream = await httpClient.GetStreamAsync(iconUrl);
+			using MemoryStream sourceStream = new();
 
-			Icon = new WindowIcon(stream);
+			downloadStream.CopyTo(sourceStream);
+			sourceStream.Seek(0, SeekOrigin.Begin);
+
+			WinBitmap bitmap = new(sourceStream);
+			WinIcon convertedIcon = WinIcon.FromHandle(bitmap.GetHicon());
+
+			using Stream fs = File.OpenWrite("webapp.ico");
+			convertedIcon.Save(fs);
+
+			sourceStream.Seek(0, SeekOrigin.Begin);
+			Icon = new WindowIcon(sourceStream);
 		}
 
 		private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
 		{
 			server.Kill();
+
+			Process changeIconProcess = new()
+			{
+				StartInfo =
+				{
+					FileName = "IconChanger.exe",
+#if !DEBUG
+					CreateNoWindow = true
+#endif
+				}
+			};
+
+			changeIconProcess.Start();
 		}
 	}
 }
