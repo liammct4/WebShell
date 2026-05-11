@@ -41,17 +41,16 @@
 			webView21.Location = new Point(0, 0);
 			webView21.Name = "webView21";
 			webView21.Size = new Size(800, 450);
-			webView21.Source = new Uri("localhost:4096", UriKind.Absolute);
 			webView21.TabIndex = 0;
 			webView21.ZoomFactor = 1D;
 			// 
-			// Form1
+			// MainView
 			// 
 			AutoScaleDimensions = new SizeF(13F, 32F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
 			Controls.Add(webView21);
-			Name = "Form1";
+			Name = "MainView";
 			Text = "Form1";
 			((System.ComponentModel.ISupportInitialize)webView21).EndInit();
 			ResumeLayout(false);
