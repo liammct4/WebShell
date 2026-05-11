@@ -1,10 +1,23 @@
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebShell.Config;
+using WebShell.Utilities;
 
 namespace WebShell
 {
 	internal static class Program
 	{
+		private static readonly JsonSerializerOptions options = new()
+		{
+			IndentSize = 4,
+			WriteIndented = true,
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+			DefaultIgnoreCondition = JsonIgnoreCondition.Never
+		};
+
 		/// <summary>
 		///  The main entry point for the application.
 		/// </summary>
@@ -21,12 +34,7 @@ namespace WebShell
 			{
 				webApp = new LoadWebAppConfig();
 
-				string json = JsonSerializer.Serialize(webApp, new JsonSerializerOptions()
-				{
-					IndentSize = 4,
-					WriteIndented = true,
-					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-				});
+				string json = JsonSerializer.Serialize(webApp, options);
 
 				File.WriteAllText("config.json", json);
 			}
@@ -35,7 +43,7 @@ namespace WebShell
 				try
 				{
 					using Stream stream = File.OpenRead("config.json");
-					webApp = JsonSerializer.Deserialize<LoadWebAppConfig>(stream);
+					webApp = JsonSerializer.Deserialize<LoadWebAppConfig>(stream, options);
 				}
 				catch (Exception e) when (e is
 					FileNotFoundException or
@@ -43,27 +51,21 @@ namespace WebShell
 					IOException
 				)
 				{
-					MessageBox.Show(
+					MessageUtilities.ShowError(
 						$"""
 						Couldn't access the config.json file.
 					
 						Full Error:
 						{e}
 						""",
-						"WebShell Error: Could not open file.",
-						MessageBoxButtons.OK,
-						MessageBoxIcon.Error,
-						MessageBoxDefaultButton.Button1
+						"Could not open file."
 					);
 				}
 				catch (JsonException)
 				{
-					MessageBox.Show(
+					MessageUtilities.ShowError(
 						"Could not parse config.json. The file is invalid.",
-						"WebShell Error: Could not parse file.",
-						MessageBoxButtons.OK,
-						MessageBoxIcon.Error,
-						MessageBoxDefaultButton.Button1
+						"Could not parse file."
 					);
 				}
 			}
@@ -72,6 +74,43 @@ namespace WebShell
 			{
 				return;
 			}
+
+			// Start server.
+			if (!File.Exists(webApp.Server.Path))
+			{
+				MessageUtilities.ShowError(
+					$"Couldn't find server executable at: {webApp.Server.Path}",
+					"Couldn't start server."
+				);
+				return;
+			}
+
+			Process server = new()
+			{
+				StartInfo =
+				{
+					FileName = webApp.Server.Path,
+					Arguments = webApp.Server.Arguments
+				}
+			};
+
+			if (!server.Start())
+			{
+				MessageUtilities.ShowError(
+					"Unable to start the server due to unknown reasons.",
+					"Couldn't start server."
+				);
+				return;
+			}
+
+			// Initial pre waiting, wait for a second for the server
+			// to be ready before launching, then start with an empty
+			// view.
+
+			// TODO: Add timeout.
+			using var client = new TcpClient();
+			client.Connect("127.0.0.1", webApp.Server.Port);
+			client.Close();
 
 			Application.Run(new MainView(webApp));
 		}
