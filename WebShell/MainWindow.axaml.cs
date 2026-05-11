@@ -29,12 +29,18 @@ namespace WebShell
 			TypeInfoResolver = ConfigJsonContext.Default
 		};
 
-		private readonly HttpClient httpClient = new();
+		private readonly HttpClientHandler http = new()
+		{
+			UseProxy = false
+		};
+		private readonly HttpClient httpClient;
 		private readonly Process server;
 		private readonly LoadWebAppConfig config;
 
 		public MainWindow()
 		{
+			httpClient = new(http);
+
 			InitializeComponent();
 
 			Closing += MainWindow_Closing;
@@ -194,6 +200,7 @@ namespace WebShell
 			}
 
 			Uri iconUrl = await webView.GetFaviconUri();
+			iconUrl = new Uri(iconUrl.ToString().Replace("localhost", "127.0.0.1"));
 
 			using Stream downloadStream = await httpClient.GetStreamAsync(iconUrl);
 			using MemoryStream sourceStream = new();
