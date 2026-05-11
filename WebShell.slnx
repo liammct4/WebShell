@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="WebShell/WebShell.csproj" />
+  <Project Path="WebShell/WebShell.csproj" Id="709e4463-6014-49f9-a7d5-c996a26d2c30" />
+  <Project Path="WebShellOld/WebShellOld.csproj" />
 </Solution>

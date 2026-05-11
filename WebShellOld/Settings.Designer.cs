@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WebShell {
+namespace WebShellOld {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
