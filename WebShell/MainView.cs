@@ -10,6 +10,9 @@ namespace WebShell
 		{
 			InitializeComponent();
 
+			Load += MainView_Load;
+			FormClosed += MainView_FormClosed;
+
 			if (!Network.IsPortInUse(config.Server.Port))
 			{
 				LoadMissingPage(config.Server.Port);
@@ -32,6 +35,34 @@ namespace WebShell
 			await webView21.EnsureCoreWebView2Async();
 
 			webView21.NavigateToString(formatted);
+		}
+
+		private void MainView_Load(object? sender, EventArgs e)
+		{
+			Location = Settings.Default.Location;
+			Size = Settings.Default.Size;
+
+			WindowState = Enum.Parse<FormWindowState>(Settings.Default.WindowState);
+		}
+
+		private void MainView_FormClosed(object? sender, FormClosedEventArgs e)
+		{
+			FormWindowState state = WindowState;
+
+			if (state != FormWindowState.Maximized)
+			{
+				Settings.Default.Location = Location;
+				Settings.Default.Size = Size;
+			}
+
+			if (state == FormWindowState.Minimized)
+			{
+				state = FormWindowState.Normal;
+			}
+
+			Settings.Default.WindowState = state.ToString();
+
+			Settings.Default.Save();
 		}
 	}
 }
