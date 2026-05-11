@@ -36,7 +36,11 @@ namespace WebShell
 			if (!Network.IsPortInUse(config.Server.Port))
 			{
 				LoadMissingPage(config.Server.Port);
-				return;
+
+				while (!Network.IsPortInUse(config.Server.Port))
+				{
+					await Task.Delay(250);
+				}
 			}
 
 			webView21.Source = new Uri($"localhost:{config.Server.Port}");
@@ -61,7 +65,7 @@ namespace WebShell
 		{
 			Assembly current = Assembly.GetExecutingAssembly();
 
-			using Stream page = current.GetManifestResourceStream("WebShell.MissingPortPage.html");
+			using Stream page = current.GetManifestResourceStream("WebShell.Resources.MissingPortPage.html");
 			using StreamReader reader = new(page);
 
 			string pageText = reader.ReadToEnd();

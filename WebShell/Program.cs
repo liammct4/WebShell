@@ -112,10 +112,17 @@ namespace WebShell
 			// to be ready before launching, then start with an empty
 			// view.
 
-			// TODO: Add timeout.
 			using var client = new TcpClient();
-			client.Connect("127.0.0.1", webApp.Server.Port);
-			client.Close();
+
+			try
+			{
+				client.Connect("127.0.0.1", webApp.Server.Port);
+				client.Close();
+			}
+			catch (SocketException) // Timed out.
+			{
+
+			}
 
 			Application.Run(new MainView(webApp));
 
