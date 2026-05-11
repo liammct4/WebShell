@@ -13,8 +13,10 @@ namespace WebShell
 			if (!Network.IsPortInUse(config.Server.Port))
 			{
 				LoadMissingPage(config.Server.Port);
+				return;
 			}
 
+			webView21.Source = new Uri($"localhost:{config.Server.Port}");
 		}
 
 		private async void LoadMissingPage(ushort port)

@@ -7,7 +7,7 @@ namespace WebShell.Config
 	public class ServerSettings
 	{
 		public ushort Port { get; set; } = 1234;
-		public string Server { get; set; } = "localhost";
+		public string Path { get; set; } = "path-to-executable";
 		public string Arguments { get; set; } = "";
 	}
 }

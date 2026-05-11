@@ -21,7 +21,12 @@ namespace WebShell
 			{
 				webApp = new LoadWebAppConfig();
 
-				string json = JsonSerializer.Serialize(webApp);
+				string json = JsonSerializer.Serialize(webApp, new JsonSerializerOptions()
+				{
+					IndentSize = 4,
+					WriteIndented = true,
+					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+				});
 
 				File.WriteAllText("config.json", json);
 			}

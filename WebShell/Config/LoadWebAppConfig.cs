@@ -7,7 +7,9 @@ namespace WebShell.Config
 {
 	public class LoadWebAppConfig
 	{
-		public FormSettings Window { get; set; } = new();
+		public string CustomTitle { get; set; } = "WebShell";
+		public bool UseDocumentTitle { get; set; } = false;
+		public bool StartMaximized { get; set; } = false;
 		public ServerSettings Server { get; set; } = new();
 	}
 }
