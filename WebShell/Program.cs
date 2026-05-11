@@ -90,9 +90,14 @@ namespace WebShell
 				StartInfo =
 				{
 					FileName = webApp.Server.Path,
-					Arguments = webApp.Server.Arguments
+					Arguments = webApp.Server.Arguments,
+					CreateNoWindow = true
 				}
 			};
+
+#if DEBUG
+			server.StartInfo.CreateNoWindow = false;
+#endif
 
 			if (!server.Start())
 			{
@@ -113,6 +118,8 @@ namespace WebShell
 			client.Close();
 
 			Application.Run(new MainView(webApp));
+
+			server.Kill();
 		}
 	}
 }
