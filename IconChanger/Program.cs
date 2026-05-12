@@ -45,16 +45,16 @@ internal class Program
         {
             Run(args);
         }
-        catch
+        catch (Exception e)
         {
-            // Silent failure
+            Console.WriteLine(e);
         }
     }
 
     static void Run(string[] args)
     {
         string baseDir = AppContext.BaseDirectory;
-        string targetExe = Path.Combine(baseDir, "WebShell.exe");
+        string targetExe = Path.Combine(baseDir, args[0]);
         string iconPath = Path.Combine(baseDir, "webapp.ico");
 
         if (!File.Exists(targetExe) || !File.Exists(iconPath))

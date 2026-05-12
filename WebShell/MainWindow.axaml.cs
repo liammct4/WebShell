@@ -259,11 +259,14 @@ namespace WebShell
 			server.Kill();
 
 #if !DEBUG
+			string currentProcessName = Process.GetCurrentProcess().ProcessName;
+
 			Process changeIconProcess = new()
 			{
 				StartInfo =
 				{
 					FileName = "IconChanger.exe",
+					Arguments = currentProcessName,
 					CreateNoWindow = true
 				}
 			};
