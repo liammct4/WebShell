@@ -8,6 +8,7 @@
 	<PublishAot>true</PublishAot>
 	<UseWindowsForms>true</UseWindowsForms>
 	<_SuppressWinFormsTrimError>true</_SuppressWinFormsTrimError>
+	<Platforms>AnyCPU;ARM64;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
