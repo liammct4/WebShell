@@ -1,14 +1,18 @@
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Styling;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WebShell.Config;
@@ -28,6 +32,8 @@ namespace WebShell
 			DefaultIgnoreCondition = JsonIgnoreCondition.Never,
 			TypeInfoResolver = ConfigJsonContext.Default
 		};
+
+		private MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext;
 
 		private readonly HttpClientHandler http = new()
 		{
@@ -82,21 +88,20 @@ namespace WebShell
 					IOException
 				)
 				{
-					MessageUtilities.ShowError(
+					DisplayError(
 						$"""
-						Couldn't access the config.json file.
+						Couldn't access the config.json file due to the
+						file not existing, or being unauthorized.
 					
 						Full Error:
 						{e}
-						""",
-						"Could not open file."
+						"""
 					);
 				}
 				catch (JsonException)
 				{
-					MessageUtilities.ShowError(
-						"Could not parse config.json. The file is invalid.",
-						"Could not parse file."
+					DisplayError(
+						"Could not parse config.json. The file is invalid."
 					);
 				}
 			}
@@ -109,9 +114,8 @@ namespace WebShell
 			// Start server.
 			if (!File.Exists(webApp.Server.Path))
 			{
-				MessageUtilities.ShowError(
-					$"Couldn't find server executable at: {webApp.Server.Path}",
-					"Couldn't start server."
+				DisplayError(
+					$"Could not find server executable at: \"{webApp.Server.Path}\""
 				);
 				return;
 			}
@@ -130,10 +134,7 @@ namespace WebShell
 
 			if (!server.Start())
 			{
-				MessageUtilities.ShowError(
-					"Unable to start the server due to unknown reasons.",
-					"Couldn't start server."
-				);
+				DisplayError("Unable to start the server due to unknown reasons.");
 				return;
 			}
 
@@ -158,6 +159,22 @@ namespace WebShell
 			LoadPage();
 		}
 
+		private void DisplayError(string message)
+		{
+			ViewModel.ErrorMessage = message;
+			ViewModel.ShowError = true;
+			TransparencyLevelHint = [WindowTransparencyLevel.Mica];
+			Background = new SolidColorBrush(Colors.Transparent);
+		}
+
+		private void RemoveError()
+		{
+			ViewModel.ErrorMessage = "";
+			ViewModel.ShowError = false;
+			TransparencyLevelHint = [WindowTransparencyLevel.None];
+			Background = new SolidColorBrush(Colors.Black);
+		}
+
 		private async void LoadPage()
 		{
 			Title = string.IsNullOrWhiteSpace(config.CustomTitle) ?
@@ -168,28 +185,23 @@ namespace WebShell
 
 			if (!Network.IsPortInUse(config.Server.Port))
 			{
-				LoadMissingPage(config.Server.Port);
-
+				DisplayError(
+					$"""
+					No server could be found on port {config.Server.Port}.
+					Check that you have specified the correct port in the server options in config.json.
+					Also check that you have given the correct arguments to the server.
+					"""
+				);
+				
 				while (!Network.IsPortInUse(config.Server.Port))
 				{
 					await Task.Delay(250);
 				}
 			}
 
+			RemoveError();
+
 			webView.Source = new Uri($"localhost:{config.Server.Port}");
-		}
-
-		private async void LoadMissingPage(ushort port)
-		{
-			Assembly current = Assembly.GetExecutingAssembly();
-
-			using Stream page = current.GetManifestResourceStream("WebShell.Resources.MissingPortPage.html");
-			using StreamReader reader = new(page);
-
-			string pageText = reader.ReadToEnd();
-			string formatted = pageText.Replace("{PORT_NUMBER}", port.ToString());
-
-			webView.NavigateToString(formatted);
 		}
 
 		private async void WebView_NavigationCompleted(object? sender, WebViewNavigationCompletedEventArgs e)
@@ -239,20 +251,25 @@ namespace WebShell
 
 			Settings.Default.Save();
 
+			if (server is null)
+			{
+				return;
+			}
+
 			server.Kill();
 
+#if !DEBUG
 			Process changeIconProcess = new()
 			{
 				StartInfo =
 				{
 					FileName = "IconChanger.exe",
-#if !DEBUG
 					CreateNoWindow = true
-#endif
 				}
 			};
 
 			changeIconProcess.Start();
+#endif
 		}
 	}
 }

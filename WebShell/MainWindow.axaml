@@ -1,9 +1,27 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="WebShell.MainWindow"
-        Title="WebShell">
-    <NativeWebView x:Name="webView"/>
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="using:WebShell"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+		x:Class="WebShell.MainWindow"
+		x:DataType="local:MainWindowViewModel"
+		Title="WebShell">
+	<Window.DataContext>
+		<local:MainWindowViewModel/>
+	</Window.DataContext>
+	<Window.Styles>
+		<Style Selector="Label.title">
+			<Setter Property="FontSize" Value="25"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+	</Window.Styles>
+	<Grid Background="Transparent">
+		<NativeWebView IsVisible="{Binding !ShowError}" x:Name="webView"/>
+		<StackPanel Margin="15" IsVisible="{Binding ShowError}" Orientation="Vertical">
+			<Label Margin="0 0 0 10" Classes="title">WebShell</Label>
+			<SelectableTextBlock TextWrapping="WrapWithOverflow" Text="{Binding ErrorMessage}"/>
+			<HyperlinkButton NavigateUri="https://github.com/liammct/WebShell">Repository</HyperlinkButton>
+		</StackPanel>
+	</Grid>
 </Window>

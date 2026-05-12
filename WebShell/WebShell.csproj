@@ -9,9 +9,6 @@
 	<UseWindowsForms>true</UseWindowsForms>
 	<_SuppressWinFormsTrimError>true</_SuppressWinFormsTrimError>
   </PropertyGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\MissingPortPage.html" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.1" />
@@ -23,7 +20,7 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="MessageBox.Avalonia" Version="12.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 
   <ItemGroup>
